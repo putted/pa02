@@ -28,7 +28,7 @@ ssize_t Read(int fd, void *buf, size_t count) {
   while(nleft > 0) {
     if((nread = read(fd, ptr, nleft)) < 0) {
       if(errno == EINTR) {
-        read = 0;
+        nread = 0;
       }
       else {
         printf("Error with descriptor. Could read only %d bytes from requested %d\n", (int)(count - nleft), (int)count);

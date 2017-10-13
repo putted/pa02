@@ -1,0 +1,2 @@
+This is Amal. Will send digest to FD 4 and file to FD 6
+This is Amal. Starting to digest the input file

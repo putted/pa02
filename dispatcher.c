@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
 
     //Prepare the file descriptors as args to Amal
     snprintf(arg1, 20, "%d", AtoB_ctrl[WRITE_END]);
-    sprintf(arg2, 20, "%d", AtoB_data[WRITE_END]);
+    snprintf(arg2, 20, "%d", AtoB_data[WRITE_END]);
 
     //Start Amal
     char *cmnd = "./amal/amal";
@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
 
       printf("\nDispatcher is now waiting for Amal to terminate\n");
       waitpid(amalPID, NULL, 0);
-      printf("\nDispatcher is now waiting for Basim to terminate\n")
+      printf("\nDispatcher is now waiting for Basim to terminate\n");
       waitpid(basimPID, NULL, 0);
       printf("\nDispatcher process has terminated\n");
     }
