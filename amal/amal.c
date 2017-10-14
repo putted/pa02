@@ -31,14 +31,48 @@ int main(int argc, char *argv[]) {
   }
   fprintf(log, "This is Amal. Will send digest to FD %d and file to FD %d\n", fd_ctrl, fd_data);
 
-  int fd_in = open("amal/bunny.mp4", O_RDONLY, S_IRUSR | S_IWUSR);
+  char *filename = "amal/bunny.mp4";
+  int fd_in = open(filename, O_RDONLY, S_IRUSR | S_IWUSR);
   if(fd_in == -1) {
     fprintf(stderr, "This is Amal. Could not open input file\n");
     exit(-1);
   }
   fprintf(log, "This is Amal. Starting to digest the input file\n");
 
-  //MISSING CODE HERE
+  /* --------------------- Added Code ---------------------------- */
+
+  //get hash value
+  uint8_t digest_output[INPUT_CHUNK];
+  int dlen = fileDigest(fd_in, digest_output, fd_data);
+
+  //getRSAfromFile
+  RSA *private = getRSAfromFile("amal/amal_priv_key.pem", 0);
+
+  //encrypt hash value using RSA private key
+  uint8_t *encrypt_output = (uint8_t *)malloc(RSA_size(private));
+  int encrypt_len = RSA_private_encrypt(dlen, digest_output, encrypt_output, private, RSA_PKCS1_PADDING);
+  if(encrypt_len < 0) {
+    fprintf(stderr, "ERROR: Encryption failed\n");
+    exit(-1);
+  }
+
+  //send a copy of the file through the data pipe
+  uint8_t read_output[INPUT_CHUNK];
+  int read_len;
+  while((read_len = read(fd_in, read_output, INPUT_CHUNK)) > 0) {
+    if(write(fd_data, read_output, read_len) != read_len) {
+      fprintf(stderr, "ERROR: Amal failed to write to data pipe\n");
+      exit(-1);
+    }
+  }
+
+  //send the encrypted hash value over the control pipe
+  if(write(fd_ctrl, encrypt_output, encrypt_len) != encrypt_len) {
+    fprintf(stderr, "ERROR: Amal failed to write to control pipe\n");
+    exit(-1);
+  }
+
+  /* -------------------- End Added Code ---------------------------*/
 
   EVP_cleanup();
   ERR_free_strings();
