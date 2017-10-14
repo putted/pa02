@@ -45,6 +45,11 @@ int main(int argc, char *argv[]) {
   uint8_t digest_output[INPUT_CHUNK];
   int dlen = fileDigest(fd_in, digest_output, fd_data);
 
+  //print the digest of the file
+  fprintf(log, "This is Amal. Here is the digest of the file:\n");
+  BIO *bio_log = BIO_new_fp(log, BIO_NOCLOSE);
+  BIO_dump(bio_log, digest_output, dlen);
+
   //getRSAfromFile
   RSA *private = getRSAfromFile("amal/amal_priv_key.pem", 0);
 
