@@ -50,6 +50,7 @@ int main(int argc, char *argv[]) {
   BIO *bio_log = BIO_new_fp(log, BIO_NOCLOSE);
   BIO_dump(bio_log, digest_output, dlen);
 
+  /*
   //getRSAfromFile
   RSA *private = getRSAfromFile("amal/amal_priv_key.pem", 0);
 
@@ -60,6 +61,8 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "ERROR: Encryption failed\n");
     exit(-1);
   }
+
+  BIO_dump(bio_log, encrypt_output, encrypt_len);
 
   //send a copy of the file through the data pipe
   uint8_t read_output[INPUT_CHUNK];
@@ -76,6 +79,9 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "ERROR: Amal failed to write to control pipe\n");
     exit(-1);
   }
+
+  BIO_flush(bio_log);
+  free(encrypt_output);
 
   /* -------------------- End Added Code ---------------------------*/
 

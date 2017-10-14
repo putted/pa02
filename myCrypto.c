@@ -21,37 +21,41 @@ size_t fileDigest(int fd_in, uint8_t *digest, int fd_save) {
 
   // Declare mdCtx and buffer to be used
   EVP_MD_CTX* mdCtx;
-  char *buff[INPUT_CHUNK];
+  uint8_t buf[INPUT_CHUNK];
+  int length;
 
-  if((mdCtx = EVP_MD_CTX_create()) == NULL)
-	handleErrors("Failed to create mdCtx.");
+  if((mdCtx = EVP_MD_CTX_create()) == NULL) {
+    handleErrors("Failed to create mdCtx.");
+  }
 
-  if (1 != EVP_DigestInit_ex(mdCtx, EVP_sha256(), NULL))
-	handleErrors("Failed to initialize mdCtx.");
+  if (EVP_DigestInit_ex(mdCtx, EVP_sha256(), NULL) != 1) {
+    handleErrors("Failed to initialize mdCtx.");
+  }
 
   // Read all the incoming data from 'fd_in' file descriptor
   int iter;
-  while (iter = read(fd_in, buff, INPUT_CHUNK), iter != 0)
+  while ((iter = read(fd_in, buf, INPUT_CHUNK)) > 0)
   {
-  // Compute the SHA256 hash value of this incoming data into the array 'digest'
-	if (1 != EVP_DigestUpdate(mdCtx, buff, iter));
-	  handleErrors("Failed to update digest.");
+    if (fd_save > 0)
+    {
+      write(fd_save, buf, iter);
+    }
+
+    if(EVP_DigestUpdate(mdCtx, buf, iter) != 1) {
+      handleErrors("Failed to update digest");
+    }
+    
+    length += iter;
   }
 
-  int digest_len = strlen(digest);
-  if (1 != EVP_DigestFinal_ex(mdCtx, digest, &digest_len))
+  if (EVP_DigestFinal_ex(mdCtx, digest, &length) != 1) {
     handleErrors("Failed to finalize digest.");
+  }
 
   EVP_MD_CTX_destroy(mdCtx);
 
-  // If the file descriptor 'fd_save' is > 0, store a copy of the incoming data to 'fd_save'
-  if (fd_save > 0)
-  {
-	  fd_save = fd_in;
-  }
-
   // Returns actual size in bytes of the computed hash value
-  return digest_len;
+  return length;
 }
 
 RSA *getRSAfromFile(char *filename, int public) {
